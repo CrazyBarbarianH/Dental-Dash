@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Dental Dash</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#1b1035;--acc:#ffd23f;--ok:#4ade80;--bad:#ff5d73;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{margin:0;background:var(--bg);color:#fff;font-family:system-ui,sans-serif}
+body{display:flex;justify-content:center;padding:8px;background:#1b1035 linear-gradient(45deg,#ffffff0a 25%,#0000 25% 75%,#ffffff0a 75%) 0 0/16px 16px}
+#wrap{width:100%;max-width:960px}
+#hud{display:flex;justify-content:space-between;align-items:center;gap:6px;font:10px "Press Start 2P",monospace;color:var(--acc);padding:4px 2px}
+#pb{height:8px;background:#0006;border:2px solid #fff;margin:2px 0 6px}#pi{display:block;height:100%;width:0;background:#4fd0ff}
+#stage{position:relative;border:4px solid #000;outline:4px solid #fff;box-shadow:8px 8px 0 #000;touch-action:none;margin:0 auto;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}#stage::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,#0000 0 2px,#0003 2px 3px)}
+canvas{display:block;width:100%;height:auto;image-rendering:pixelated}
+#ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#120a2acc;padding:8px;overflow:auto}
+.card{background:#2a1b52;border:4px solid #000;outline:3px solid var(--acc);box-shadow:inset 0 0 0 3px #4a3a8a,6px 6px 0 #000;padding:12px 14px;max-width:680px;width:100%;max-height:100%;overflow:auto;font-size:14px;line-height:1.45}
+h1,h2{font:15px/1.5 "Press Start 2P",monospace;color:var(--acc);margin:0 0 10px}
+button{font:10px/1.4 "Press Start 2P",monospace;background:var(--acc);color:#1b1035;border:0;padding:10px 12px;margin:4px 4px 0 0;cursor:pointer;box-shadow:inset -3px -3px 0 #c9971a,inset 3px 3px 0 #fff5,3px 3px 0 #000;text-align:left}
+button.m{display:block;width:100%}
+button.o{background:#fff;display:block;width:100%;margin:6px 0;font:700 14px system-ui,sans-serif;padding:9px 10px}
+button.ok{background:var(--ok)}button.bad{background:var(--bad);color:#fff}
+.ref{font-size:12px;margin:6px 0;padding-left:8px;border-left:3px solid var(--acc)}.ref a{color:#9be7ff}
+.card{touch-action:pan-y;-webkit-overflow-scrolling:touch}
+html,body{overscroll-behavior:none;overflow-x:hidden;touch-action:none}
+@media (orientation:portrait) and (max-width:700px),(max-height:500px){#hint{display:none}}
+#hud{padding:2px}
+#hud button{min-width:38px;min-height:34px;padding:6px 8px;margin:0 0 0 4px}
+button{min-height:40px}button.o{min-height:46px}
+.tip{background:#1b1035;border:3px solid #4fd0ff;padding:8px 10px;margin:6px 0 8px}.tip p{margin:6px 0;font-size:15px;min-height:3.8em}
+#tb{height:5px;background:#fff2}#tb i{display:block;height:100%;background:#4fd0ff;animation:tb 7s linear forwards}
+@keyframes tb{from{width:0}to{width:100%}}
+.ttl{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center}
+.ttl .l{text-align:center}.big{font:22px/1.3 "Press Start 2P",monospace;color:var(--acc);text-shadow:3px 3px 0 #000,0 0 14px #ffd23f55;margin:6px 0}
+.sb{margin:0 0 8px;color:#9be7ff;font-size:13px}
+.mas{display:flex;justify-content:center;align-items:flex-end;gap:12px;min-height:60px}.mas img{animation:bn 1.1s steps(4) infinite}.mas img:nth-child(2){animation-delay:.25s}.mas img:nth-child(3){animation-delay:.5s}
+@keyframes bn{50%{transform:translateY(-8px)}}
+.dev{background:#1b1035;border:3px solid #4a3a8a;padding:8px 10px;font-size:12px}.dev b{display:block;font:9px/1.5 "Press Start 2P",monospace;color:var(--acc);margin-bottom:6px}
+.dev div{padding:4px 0;border-bottom:1px dotted #fff3}.dev div:last-child{border:0}.dev span{display:block;color:#9be7ff;font-family:monospace;font-size:11px}
+@media (max-width:600px){.ttl{grid-template-columns:1fr}.big{font-size:18px}}
+#rot{display:none;font-size:12px;color:var(--acc);margin:6px 2px}
+@media (orientation:portrait) and (max-width:700px){#rot{display:block}}
+@media (max-width:600px){#hud{font-size:8px}.card{font-size:13px;padding:10px}h1,h2{font-size:12px}button{font-size:9px}button.o{font-size:13px}}
+@media (max-height:420px){.card{font-size:12px;padding:8px}h1,h2{font-size:11px;margin-bottom:6px}.tip p{min-height:0}p{margin:4px 0}}
+</style></head><body>
+<div id="wrap">
+<div id="hud"><span id="hp"></span><span id="hl"></span><span id="hg"></span><span><button id="pa" onclick="pause()" aria-label="Pausar">⏸</button><button id="mu" onclick="mute()" aria-label="Som">🔊</button></span></div>
+
+<div id="stage"><canvas id="c"></canvas><div id="ov"></div></div>
+<p id="hint" style="font-size:12px;opacity:.7;margin:8px 2px">Pule: Espaço / ↑ / toque na tela. Pause: P / Esc / ⏸. Colete 💠 cálcio e responda as perguntas para passar de fase.</p>
+</div>
+<script>
+const Q=[
+{q:"A cárie é causada por quê?",o:["Bactérias que transformam açúcar em ácido","Tomar vento frio","Dormir tarde"],a:0,e:"As bactérias da placa fazem ácido com o açúcar, e o ácido tira minerais do dente.",r:[["Featherstone JD. The science and practice of caries prevention. J Am Dent Assoc. 2000;131(7):887-99.","The science and practice of caries prevention","P"]]},
+{q:"Para que serve a pasta de dente com flúor?",o:["Deixar os dentes amarelos","Fortalecer o esmalte e prevenir cárie","Fazer o dente crescer"],a:1,e:"Pastas com flúor previnem cárie em crianças, e o efeito é maior nas concentrações mais altas.",r:[["Walsh T, Worthington HV, Glenny AM, Marinho VC, Jeroncic A. Fluoride toothpastes of different concentrations for preventing dental caries. Cochrane Database Syst Rev. 2019;3:CD007868.","Fluoride toothpastes of different concentrations for preventing dental caries","P"]]},
+{q:"Qual hábito mais aumenta o risco de cárie?",o:["Beber água","Comer maçã","Doces e refrigerante toda hora"],a:2,e:"O açúcar livre é o principal fator da dieta ligado à cárie. Quanto menos vezes ao dia, melhor.",r:[["Sheiham A, James WP. Diet and dental caries: the pivotal role of free sugars reemphasized. J Dent Res. 2015;94(10):1341-7.","Diet and dental caries: the pivotal role of free sugars reemphasized","P"]]},
+{q:"Para que servem os selantes?",o:["Proteger os sulcos dos dentes de trás","Clarear os dentes","Prender aparelho"],a:0,e:"Selantes cobrem as fissuras dos molares, onde a escova chega mal, e reduzem a cárie.",r:[["Ahovuo-Saloranta A, Forss H, Walsh T, Nordblad A, Mäkelä M, Worthington HV. Pit and fissure sealants for preventing dental decay in permanent teeth. Cochrane Database Syst Rev. 2017;7:CD001830.","Pit and fissure sealants for preventing dental decay in permanent teeth","P"]]},
+{q:"A gengiva sangra ao escovar. O que pode ser?",o:["Gengivite: inflamação causada pela placa","O dente está crescendo forte","É normal, não precisa fazer nada"],a:0,e:"A gengivite vem da placa bacteriana e é reversível com escovação e fio dental. Se persistir, procure o dentista.",r:[["Chapple ILC, Mealey BL, Van Dyke TE, et al. Periodontal health and gingival diseases and conditions on an intact and a reduced periodontium. J Clin Periodontol. 2018;45(Suppl 20):S68-S77.","Periodontal health and gingival diseases and conditions on an intact and a reduced periodontium","P"]]},
+{q:"Para que o dentista passa verniz fluoretado?",o:["Pintar o dente","Ajudar a prevenir cárie em crianças","Tirar o dente de leite"],a:1,e:"O verniz com flúor reduz a cárie em dentes de leite e permanentes.",r:[["Marinho VCC, Worthington HV, Walsh T, Clarkson JE. Fluoride varnishes for preventing dental caries in children and adolescents. Cochrane Database Syst Rev. 2013;(7):CD002279.","Fluoride varnishes for preventing dental caries in children and adolescents","P"]]},
+{q:"Um dente permanente saiu inteiro numa queda. E agora?",o:["Jogar fora","Ir rápido ao dentista, com o dente guardado em leite","Colar com cola"],a:1,e:"Quanto mais rápido o dente voltar, melhor. Segure pela coroa (nunca pela raiz), não esfregue e guarde em leite.",r:[["Fouad AF, Abbott PV, Tsilingaridis G, et al. IADT guidelines for the management of traumatic dental injuries: 2. Avulsion of permanent teeth. Dent Traumatol. 2020;36(4):331-42.","IADT guidelines traumatic dental injuries 2. Avulsion of permanent teeth","P"]]},
+{q:"No Brasil, o que ajudou a diminuir a cárie?",o:["Mais doces nas escolas","Menos escovação","Flúor na água e nos cremes dentais"],a:2,e:"A queda da cárie no Brasil está ligada ao flúor, mas ainda há desigualdade de acesso.",r:[["Narvai PC, Frazão P, Roncalli AG, Antunes JLF. Cárie dentária no Brasil: declínio, iniquidade e exclusão social. Rev Panam Salud Publica. 2006;19(6):385-93.","Cárie dentária no Brasil: declínio, iniquidade e exclusão social","S"],["Narvai PC. Cárie dentária e flúor: uma relação do século XX. Ciênc Saúde Coletiva. 2000;5(2):381-92.","Cárie dentária e flúor: uma relação do século XX","S"]]},
+{q:"Para que serve o fio dental?",o:["Branquear os dentes","Limpar entre os dentes, onde a escova não chega","Afastar os dentes"],a:1,e:"A escova alcança mal os espaços entre os dentes. Fio ou escovinha interdental, junto com a escova, ajudam a reduzir a placa e a gengivite.",r:[["Worthington HV, MacDonald L, Poklepovic Pericic T, et al. Home use of interdental cleaning devices, in addition to toothbrushing, for preventing and controlling periodontal diseases and dental caries. Cochrane Database Syst Rev. 2019;4:CD012018.","Home use of interdental cleaning devices, in addition to toothbrushing, for preventing and controlling periodontal diseases and dental caries","P"]]},
+{q:"Escova elétrica ou manual: qual é a verdade?",o:["Escova manual não limpa nada","A elétrica remove um pouco mais de placa, mas o essencial é escovar direito","A elétrica dispensa o creme dental"],a:1,e:"Revisões mostram que a escova elétrica reduz um pouco mais a placa e a gengivite, mas técnica e constância importam mais.",r:[["Yaacob M, Worthington HV, Deacon SA, et al. Powered versus manual toothbrushing for oral health. Cochrane Database Syst Rev. 2014;(6):CD002281.","Powered versus manual toothbrushing for oral health","P"]]},
+{q:"Fumar faz mal para a gengiva?",o:["Não, só faz mal para o pulmão","Faz bem, pois mata bactérias","Sim, aumenta o risco de periodontite"],a:2,e:"Fumantes têm maior risco de periodontite, uma doença que destrói o osso e as estruturas que seguram o dente.",r:[["Leite FRM, Nascimento GG, Scheutz F, López R. Effect of smoking on periodontitis: a systematic review and meta-regression. Am J Prev Med. 2018;54(6):831-41.","Effect of smoking on periodontitis: a systematic review and meta-regression","P"]]},
+{q:"Para que serve o bochecho com flúor?",o:["Substituir a escovação","Ajudar a prevenir cárie, junto com a escovação","Clarear o dente na hora"],a:1,e:"Bochechos com flúor reduzem a cárie em crianças e adolescentes, como complemento da escovação.",r:[["Marinho VCC, Higgins JPT, Logan S, Sheiham A. Fluoride mouthrinses for preventing dental caries in children and adolescents. Cochrane Database Syst Rev. 2003;(3):CD002284.","Fluoride mouthrinses for preventing dental caries in children and adolescents","P"]]}
+];
+const PQ=[[0,1,2,3],[4,8,10,9],[5,6,7,11]],NEED=12;
+const S=[
+{n:"Esmalte",sub:"A coroa brilhante dos dentes",sky:["#5cc8f5","#7fd6ff","#a4e4ff","#c9f2ff"],far:["tooth",34,"#eaf6ff","#fff",.12],mid:["tooth",22,"#bfe0f5","#e6f6ff",.3],ceil:["hang",20,"#f3faff","#fff",.5],ft:"#fff",fb:"#bcd8f0",fl:"#8fb6dc",sp:"#7a4a2a",sd:"#2a120a",bk:"#ff5fa8",bd:"#9b2c5e",pc:"#fff",sp0:1,bpm:150,r:261.6,w:"square",l:[0,4,7,12,7,4,7,null,5,9,12,9,7,4,2,null],bs:[-24,-24,-19,-17],k:4},
+{n:"Gengiva",sub:"Terreno rosado e fofinho",sky:["#7a1f46","#93285a","#ab3270","#c24285"],far:["mound",40,"#d9557f","#ff9db9",.12],mid:["mound",24,"#f07a9c","#ffc0d2",.3],ceil:["hang",24,"#b53a68","#e0709a",.5],ft:"#ffb3c9",fb:"#e0698d",fl:"#b13d66",sp:"#5a2a6a",sd:"#1a0a22",bk:"#ffd23f",bd:"#a07a10",pc:"#ffd0e0",sp0:1.12,bpm:125,r:220,w:"sawtooth",l:[0,null,3,null,7,null,3,5,0,null,3,null,10,8,7,null],bs:[-24,-24,-21,-19],k:2},
+{n:"Raiz e Osso",sub:"Cavernas profundas sob a gengiva",sky:["#0f0a1c","#181030","#201845","#2a2058"],far:["root",50,"#4a3a68","#6b5a90",.1],mid:["root",30,"#8a76ad","#ffd23f",.3],ft:"#e9d9b0",fb:"#b9a27a",fl:"#8a7452",sp:"#44634a",sd:"#08140c",bk:"#e8e8ff",bd:"#6a6a9a",pc:"#ffd23f",sp0:1.25,bpm:100,r:146.8,w:"square",l:[0,null,null,3,null,null,7,null,5,null,null,3,null,2,null,null],bs:[-24,-24,-22,-26],k:4}
+];
+const link=r=>r[2]=="S"?"https://search.scielo.org/?q="+encodeURIComponent(r[1]):"https://pubmed.ncbi.nlm.nih.gov/?term="+encodeURIComponent(r[1]);
+const refH=r=>`<div class="ref">${r[0]} <a href="${link(r)}" target="_blank" rel="noopener">[${r[2]=="S"?"SciELO":"PubMed"}]</a></div>`;
+let W=320,H=150,G=112;const $=i=>document.getElementById(i);
+const c=$('c'),x=c.getContext('2d'),ov=$('ov');c.width=W;c.height=H;
+function fit(){const vw=innerWidth,vh=innerHeight,port=vh>vw*1.05&&vw<700,nW=port?240:320,
+ aw=Math.min(vw-24,960),ah=vh-$('hud').offsetHeight-$('hint').offsetHeight-50;
+ let nH=Math.round(nW*ah/aw);nH=Math.max(140,Math.min(port?290:170,nH));
+ const og=G,ow=W;W=nW;H=nH;G=H-38;c.width=W;c.height=H;c.style.aspectRatio=W+'/'+H;
+ $('stage').style.maxWidth=Math.max(200,Math.min(aw,ah*W/H))+'px';
+ try{const d=G-og;if(d){O.forEach(o=>{if(o.y!=null)o.y+=d;if(o.t=='h')o.h=H-G});P.y+=d}}catch(e){}
+ return ow!=W}
+fit();addEventListener('resize',()=>{if(fit()&&st=='play')pause()});addEventListener('orientationchange',()=>setTimeout(()=>{if(fit()&&st=='play')pause()},200));
+let st='menu',ph=0,P={x:50,y:G-12,vy:0,rot:0,on:true,inv:0},O=[],sc=0,speed=100,lives=3,gems=0,cc=0,score=0,lastSp=0,gap=110,hold=false,t=0,prog={u:0,s:[0,0,0]};
+try{prog=JSON.parse(localStorage.dd)||prog}catch(e){}
+const save=()=>{try{localStorage.dd=JSON.stringify(prog)}catch(e){}};
+const show=h=>{ov.innerHTML='<div class="card">'+h+'</div>';ov.style.display='flex'},hide=()=>ov.style.display='none';
+/* ---------- AUDIO ---------- */
+let AC,mv,mi=-1,stp=0,nt=0,tm;
+function ia(){if(AC)return;AC=new(window.AudioContext||window.webkitAudioContext)();mv=AC.createGain();mv.gain.value=.5;mv.connect(AC.destination);
+ const n=AC.sampleRate/10,b=AC.createBuffer(1,n,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;window.nb=b;
+ tm=setInterval(()=>{if(mi<0)return;const m=S[mi];while(nt<AC.currentTime+.2){const s=stp%16,v=m.l[s];
+  if(v!=null)tn(m.r*2**(v/12),nt,.2,m.w,m.w=="sawtooth"?.04:.06);
+  if(s%m.k==0)tn(m.r*2**(m.bs[(s>>2)%4]/12),nt,.35,"triangle",.14);
+  if(s%2==1){const q=AC.createBufferSource(),g=AC.createGain();q.buffer=nb;g.gain.setValueAtTime(.03,nt);g.gain.exponentialRampToValueAtTime(.001,nt+.04);q.connect(g);g.connect(mv);q.start(nt);q.stop(nt+.05)}
+  nt+=60/m.bpm/4;stp++}},50)}
+function tn(f,t0,d,ty,v){const o=AC.createOscillator(),g=AC.createGain();o.type=ty;o.frequency.value=f;g.gain.setValueAtTime(v,t0);g.gain.exponentialRampToValueAtTime(.001,t0+d);o.connect(g);g.connect(mv);o.start(t0);o.stop(t0+d)}
+function sfx(a,b,d,ty){if(!AC)return;const o=AC.createOscillator(),g=AC.createGain(),n=AC.currentTime;o.type=ty||"square";o.frequency.setValueAtTime(a,n);o.frequency.exponentialRampToValueAtTime(b,n+d);g.gain.setValueAtTime(.12,n);g.gain.exponentialRampToValueAtTime(.001,n+d);o.connect(g);g.connect(mv);o.start();o.stop(n+d)}
+function music(i){mi=i;stp=0;if(AC)nt=AC.currentTime+.05}
+function mute(){if(!AC)return;const m=mv.gain.value>0;mv.gain.value=m?0:.5;$('mu').textContent=m?'🔇':'🔊'}
+/* ---------- PAUSE ---------- */
+const TP=["Escove os dentes 2 vezes por dia, principalmente antes de dormir.","Use creme dental com flúor. Até 3 anos, só um grãozinho de arroz; depois, do tamanho de uma ervilha.","Escove por cerca de 2 minutos, limpando a parte de fora, a de dentro e a de mastigar.","Depois de escovar, cuspa o excesso de creme dental e não enxágue muito: o flúor fica protegendo.","Passe fio dental uma vez por dia para limpar entre os dentes, onde a escova não chega.","Doces e refrigerantes: o melhor é só nas refeições, e não toda hora.","Água é a melhor bebida para os dentes. Beba ao longo do dia!","Troque a escova a cada 3 meses, ou antes se as cerdas abrirem.","Nunca divida a escova de dentes com outra pessoa.","Vá ao dentista com regularidade, mesmo sem dor. Ele ajuda a evitar problemas antes de aparecerem.","Gengiva sangrando ao escovar? Continue escovando com cuidado e avise um adulto ou o dentista.","Crianças pequenas precisam de um adulto para ajudar ou conferir a escovação.","Use capacete e protetor bucal em esportes de contato para proteger o sorriso.","Dente permanente caiu inteiro? Segure pela coroa, guarde em leite e corra ao dentista.","Frutas, legumes e água são bons amigos do sorriso."];
+let ti=0,tt;
+function pause(){if(st!='play')return;st='pause';hold=false;ti=Math.random()*TP.length|0;if(AC&&AC.state=='running')AC.suspend();
+ show(`<h2>⏸ PAUSADO</h2><div class="tip"><b>🪥 DICA DE HIGIENE <span id="tn"></span></b><p id="tp"></p><div id="tb"><i></i></div></div><button class="m" onclick="resume()">▶ CONTINUAR</button><button class="m" onclick="nextTip()">💡 OUTRA DICA</button><button class="m" onclick="menu()">☰ MENU</button><p style="font-size:11px;opacity:.7">Dicas gerais. Seu dentista pode orientar o melhor para você.</p>`);
+ setTip();clearInterval(tt);tt=setInterval(nextTip,7000)}
+function setTip(){$('tp').textContent=TP[ti];$('tn').textContent=(ti+1)+'/'+TP.length;const b=$('tb').firstChild;b.style.animation='none';b.offsetWidth;b.style.animation=''}
+function nextTip(){ti=(ti+1)%TP.length;setTip();clearInterval(tt);tt=setInterval(nextTip,7000)}
+function resume(){if(st!='pause')return;clearInterval(tt);hide();st='play';P.inv=Math.max(P.inv,.6);if(AC&&AC.state=='suspended')AC.resume()}
+/* ---------- UI ---------- */
+function menu(){clearInterval(tt);if(AC&&AC.state=='suspended')AC.resume();st='menu';mi=-1;let h='<h1>🦷 DENTAL DASH</h1><p>Viaje por 3 lugares da boca, desvie das cáries, colete 💠 cálcio e responda perguntas de odontologia com fontes do PubMed e SciELO.</p>';
+ S.forEach((s,i)=>h+=`<button class="m" ${i>prog.u?'disabled style="opacity:.4"':''} onclick="intro(${i})">${i>prog.u?'🔒':'▶'} FASE ${i+1}: ${s.n.toUpperCase()} ${'★'.repeat(prog.s[i])}</button>`);
+ show(h+'<br><button onclick="refs()">📚 REFERÊNCIAS</button><button onclick="home()">← INÍCIO</button>')}
+const mk=(r,p,z)=>{const q=document.createElement('canvas');q.width=r[0].length;q.height=r.length;const g=q.getContext('2d');r.forEach((row,j)=>[...row].forEach((ch,i)=>{if(ch!='.'){g.fillStyle=p[ch];g.fillRect(i,j,1,1)}}));return `<img src="${q.toDataURL()}" style="width:${q.width*z}px" alt="">`};
+const DEV=[["Leonardo Gouveia dos Santos Morais","01466211"],["Lana Siqueira Vieira","01409113"],["Janaína Holanda Freitas","01417713"],["Emilly Kawanny Sousa Silva","01405452"],["Kauan Marques Mendonça","01532769"]];
+function home(){clearInterval(tt);if(AC&&AC.state=='suspended')AC.resume();st='menu';mi=-1;
+ show(`<div class="ttl"><div class="l"><div class="mas">${mk(GM,GP,4)}${mk(PL,PP,5)}${mk(BC,BP,4)}</div><h1 class="big">DENTAL<br>DASH</h1><p class="sb">Uma aventura pela boca!</p><button class="m" onclick="menu()">▶ JOGAR</button><button class="m" onclick="refs('home')">📚 REFERÊNCIAS BIBLIOGRÁFICAS</button></div><div class="dev"><b>👥 DESENVOLVEDORES</b>${DEV.map(d=>`<div>${d[0]}<span>Mat. ${d[1]}</span></div>`).join('')}</div></div>`)}
+function refs(b='menu'){let h='<h2>📚 Referências</h2><small>Os links abrem a busca pelo título. Confira o artigo original.</small>';Q.forEach(q=>q.r.forEach(r=>h+=refH(r)));show(h+`<button onclick="${b}()">← VOLTAR</button>`)}
+function intro(i){ia();if(AC.state=="suspended")AC.resume();ph=i;const s=S[i];st='menu';
+ show(`<h2>FASE ${i+1} · ${s.n}</h2><p>${s.sub}</p><p><b>🎯 Objetivo:</b> colete ${NEED} cristais de cálcio 💠. A cada 3 cristais aparece uma pergunta (${NEED/3} no total). Cáries, doces${ph>0?', buracos e bactérias voadoras':''} tiram 1 ♥. Resposta errada também!${ph>1?' Aqui é escuro: só se enxerga perto de você!':''}</p><button onclick="start()">▶ COMEÇAR</button>`)}
+function start(){P={x:50,y:G-12,vy:0,rot:0,on:true,inv:0};O=[];PA.length=0;qc=0;SH=0;sc=0;lives=3;gems=0;cc=0;score=0;lastSp=0;speed=125*S[ph].sp0;st='play';hide();music(ph);hud()}
+function hud(){hp.textContent=`FASE ${ph+1}·${S[ph].n}`}
+function over(){st='over';mi=-1;sfx(300,50,.6,"sawtooth");show(`<h2>OH NÃO! 😬</h2><p>As cáries venceram. Tente de novo: você acertou ${cc} pergunta(s) nesta fase.</p><button onclick="start()">↻ TENTAR DE NOVO</button><button onclick="menu()">☰ MENU</button>`)}
+function done(){st='over';mi=-1;const s=cc>=4?3:cc>=3?2:1;prog.s[ph]=Math.max(prog.s[ph],s);if(ph<2)prog.u=Math.max(prog.u,ph+1);save();
+ [523,659,784,1047].forEach((f,i)=>setTimeout(()=>sfx(f,f,.15),i*130));
+ let h=`<h2>FASE ${ph+1} COMPLETA! ${'★'.repeat(s)}${'☆'.repeat(3-s)}</h2><p>Acertos: ${cc}/4 · Pontos: ${Math.floor(score)}</p>`;
+ PQ[ph].forEach(i=>Q[i].r.forEach(r=>h+=refH(r)));
+ h+=ph<2?`<button onclick="intro(${ph+1})">▶ PRÓXIMA FASE</button>`:'<p><b>🏆 Você terminou o jogo! Parabéns, super-escovador!</b></p>';
+ show(h+`<button onclick="intro(${ph})">↻ REPETIR</button><button onclick="menu()">☰ MENU</button>`)}
+function quiz(){st='quiz';const i=PQ[ph][gems/3-1],q=Q[i];sfx(880,1320,.12);
+ show(`<h2>💠 PERGUNTA ${gems/3}/${NEED/3}</h2><p><b>${q.q}</b></p>`+q.o.map((o,k)=>`<button class="o" data-k="${k}">${o}</button>`).join(''));
+ ov.querySelectorAll('.o').forEach(b=>b.onclick=()=>{const k=+b.dataset.k,ok=k==q.a;ov.querySelectorAll('.o').forEach(n=>{n.disabled=true;if(+n.dataset.k==q.a)n.classList.add('ok')});
+  if(ok){cc++;score+=50;if(lives<3)lives++;sfx(660,990,.15)}else{b.classList.add('bad');sfx(200,120,.25);lives--}hud();
+  ov.firstChild.insertAdjacentHTML('beforeend',`<p><b>${ok?'✅ Isso aí! +50':'❌ Quase!'}</b> ${q.e}</p>`+q.r.map(refH).join('')+'<button id="go">▶ CONTINUAR</button>');
+  $('go').onclick=()=>{hide();if(lives<=0)over();else if(gems>=NEED)done();else{st='play';P.inv=1.2}}})}
+/* ---------- INPUT / LOGIC ---------- */
+function jump(){if(st=='play'&&P.on){P.vy=-250;P.on=false;sfx(300,650,.1)}}
+const K=['Space','ArrowUp','KeyW'];
+addEventListener('keydown',e=>{if(e.code=='KeyP'||e.code=='Escape'){st=='pause'?resume():pause();return}if(K.includes(e.code)){e.preventDefault();hold=true}});addEventListener('keyup',e=>{if(K.includes(e.code))hold=false});
+document.body.addEventListener('pointerdown',e=>{if(st=='play'&&!e.target.closest('button')){hold=true}});['pointerup','pointercancel','blur'].forEach(n=>addEventListener(n,()=>hold=false));
+$('stage').addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pause()});addEventListener('pagehide',()=>pause());
+function spawn(){const X=W+10,r=Math.random(),sp=(a=0)=>({t:'s',x:X+a,y:G-10,w:10,h:10});
+ if(r<.3)O.push(sp());else if(r<.5)O.push(sp(),sp(10));else if(r<.7)O.push({t:'b',x:X,y:G-12,w:12,h:12});
+ else if(r<.85)O.push({t:'b',x:X,y:G-12,w:12,h:12},sp(20));else O.push(sp(),{t:'g',x:X+1,y:G-42,w:8,h:9});
+ if(Math.random()<.6)O.push({t:'g',x:X+60+Math.random()*30,y:G-32-Math.random()*8,w:8,h:9});
+ lastSp=0;gap=90+Math.random()*60+speed/5}
+function spawn2(){const X=W+10,R=Math.random,sp=a=>({t:'s',x:X+a,y:G-10,w:10,h:10}),bk=(a,h)=>({t:'b',x:X+a,y:G-h,w:12,h}),ho=(a,w)=>({t:'h',x:X+a,y:G,w,h:H-G}),fl=a=>({t:'f',x:X+a,y:G-28,w:10,h:8,p:R()*6}),gm=(a,y)=>({t:'g',x:X+a,y:G-y,w:8,h:9});
+ const p=[[sp(0)],[sp(0),sp(10)],[sp(0),sp(10),sp(20)],[bk(0,12)],[bk(0,22)],[bk(0,12),bk(12,22)],[bk(0,12),sp(24)],[sp(0),sp(10),gm(2,44)]];
+ if(ph>0)p.push([ho(0,34)],[fl(0)],[ho(0,38),gm(15,40)],[fl(0),fl(45)],[sp(0),fl(50)]);
+ if(ph>1)p.push([ho(0,30),ho(100,30)],[bk(0,22),fl(40)],[sp(0),sp(10),sp(20),fl(60)],[ho(0,36),sp(80)],[fl(0),ho(50,30)]);
+ const q=p[R()*p.length|0];O.push(...q);const wd=Math.max(...q.map(o=>o.x-X+o.w));
+ if(R()<.7)O.push(gm(wd+speed*.28,34+R()*8));
+ lastSp=-wd;gap=speed*(.62+R()*.4-ph*.05)}
+const hit=(a,b,m)=>a.x+m<b.x+b.w-m&&a.x+a.w-m>b.x+m&&a.y+m<b.y+b.h&&a.y+a.h-m>b.y+m;
+function update(dt){
+ speed=Math.min(125*S[ph].sp0+sc/70,205);const d=speed*dt;sc+=d;lastSp+=d;score+=d*.1;if(hold)jump();
+ P.vy+=950*dt;P.y+=P.vy*dt;if(P.y>=G-12){P.y=G-12;P.vy=0;P.on=true;P.rot=0}else P.rot+=Math.PI*dt/.53;
+ P.inv=Math.max(0,P.inv-dt);SH=Math.max(0,SH-dt*20);if(P.on&&Math.random()<.35)PA.push({x:P.x+2,y:G-1,vx:-30-Math.random()*30,vy:-15,l:.3,c:S[ph].ft});for(const p of PA){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=220*dt;p.l-=dt}for(let i=PA.length;i--;)if(PA[i].l<=0)PA.splice(i,1);if(lastSp>gap)spawn2();
+ const pb={x:P.x+1,y:P.y+1,w:10,h:10};
+ for(const o of O){o.x-=d;if(o.t=='f')o.y=G-28+Math.sin(t*3+o.p)*11;const hb=o.t=='h'?{x:o.x+3,y:G-6,w:o.w-6,h:8}:o;
+  if(o.t=='g'){if(hit(pb,o,-2)){o.dead=1;gems++;score+=10;burst(o.x+4,o.y+4,'#9be7ff',12);sfx(1000,1500,.1);hud();if(++qc>=3){qc=0;quiz();return}}}
+  else if(!P.inv&&hit(pb,hb,o.t=='s'||o.t=='f'?2:1)){o.dead=1;lives--;P.inv=1.2;SH=5;burst(P.x+6,P.y+6,"#ff5d73",16);sfx(220,60,.25,"sawtooth");hud();if(lives<=0){over();return}}
+  if(o.x<-30)o.dead=1}
+ O=O.filter(o=>!o.dead)}
+/* ---------- ART ---------- */
+const PA=[];let SH=0,qc=0;
+function burst(px,py,col,n){for(let i=0;i<n;i++){const a=Math.random()*6.28,v=25+Math.random()*60;PA.push({x:px,y:py,vx:Math.cos(a)*v,vy:Math.sin(a)*v-25,l:.4+Math.random()*.35,c:col})}}
+const rc=(a,b,w,h)=>x.fillRect(Math.round(a),Math.round(b),Math.round(w),Math.round(h));
+function spr(rows,pal,px,py,tint){rows.forEach((r,j)=>[...r].forEach((ch,i)=>{if(ch!='.'){x.fillStyle=tint||pal[ch];x.fillRect(px+i,py+j,1,1)}}))}
+const PL=[".ooo....ooo.","ohhwoooowwgo","ohwwwwwwwwgo","owwwwwwwwwgo","owweewweewgo","owweywweywgo","owpwwwwwwpgo","owwwmmmmwwgo",".owwwwwwwgo.",".owwo..owgo.",".owgo..owgo.","..oo....oo.."];
+const PP={o:"#2a1b52",w:"#fffdf5",h:"#ffffff",g:"#b9b3e0",e:"#2a1b52",y:"#fff",p:"#ff9db9",m:"#c2325a"};
+const GM=["...oooo...","..olwwbo..",".olwwbbbo.","olwwbbbbdo","olwbbbbbdo","obbbbbbddo",".obbbbbdo.","..obbbdo..","...obdo...","....oo...."];
+const GP={o:"#1a2c6a",l:"#fff",w:"#eaf8ff",b:"#a8dcff",d:"#5a9be0"};
+const BC=["..o....o..",".oggggggo.","oghhgggggo","ogeeggeedo","ogewggewdo","ogmwmwmmdo",".oggggddo.","..oooooo.."],BP={o:"#1a0a22",g:"#7ddc6a",h:"#d4ffb0",d:"#4fa83e",e:"#ff3b4e",w:"#fff",m:"#4a0f1a"};
+const HR=[".rh.rr.","rrrrrrr","rrrrrrr",".rrrrr.","..rrr..","...r..."],HP1={r:"#ff3b5c",h:"#ffb3c0"},HP0={r:"#4a3a6a",h:"#4a3a6a"};
+function layer(a){const [k,sz,col,hi,f]=a,gp=sz+26,off=(sc*f)%gp;
+ for(let i=0;i<Math.ceil(W/gp)+2;i++){const bx=i*gp-off,h=sz+(i*7)%12;x.fillStyle=col;
+  if(k=='tooth'){rc(bx,G-h,sz,h);rc(bx,G-h-5,sz/3,6);rc(bx+sz*2/3,G-h-5,sz/3,6);x.fillStyle=hi;rc(bx+3,G-h+2,2,h-8);x.fillStyle='#0002';rc(bx+sz-3,G-h,3,h)}
+  else if(k=='mound'){const w2=sz*1.6;for(let y=0;y<sz;y+=2)rc(bx+(w2-w2*Math.sqrt(1-(y/sz)**2))/2,G-y-2,w2*Math.sqrt(1-(y/sz)**2),2);x.fillStyle=hi;rc(bx+w2*.3,G-sz*.7,3,2);rc(bx+w2*.3+3,G-sz*.7+2,2,2)}
+  else if(k=='hang'){rc(bx,0,sz,h/2);rc(bx+2,h/2,sz-4,3);x.fillStyle=hi;rc(bx+2,0,2,h/2);x.fillStyle='#0002';rc(bx+sz-3,0,3,h/2)}
+  else{for(let y=0;y<h*1.4;y+=2)rc(bx+6-12*(1-y/(h*1.4)*.85)/2,y,12*(1-y/(h*1.4)*.85),2);x.fillStyle=hi;rc(bx+6,0,1,h)}}}
+function draw(){const s=S[ph];x.imageSmoothingEnabled=false;x.save();if(SH>0)x.translate(Math.round((Math.random()-.5)*SH),Math.round((Math.random()-.5)*SH));
+ s.sky.forEach((k,i)=>{x.fillStyle=k;rc(0,i*G/4,W,G/4+1)});
+ for(let i=1;i<4;i++){const b=i*G/4;x.fillStyle=s.sky[i];for(const [yo,sp,of] of [[6,4,0],[4,2,0],[2,2,1]])for(let xx=of;xx<W;xx+=sp)rc(xx,b-yo,1,2)}
+ x.fillStyle=s.pc;for(let i=0;i<22;i++){const px=((i*53-sc*(.25+i%3*.1))%W+W)%W,py=G-8-((t*(6+i%4*2)+i*29)%100);x.globalAlpha=.5+.5*Math.sin(t*3+i);rc(px,py,i%3?1:2,i%3?1:2)}x.globalAlpha=1;
+ layer(s.far);layer(s.mid);if(s.ceil)layer(s.ceil);
+ x.fillStyle=s.fb;rc(0,G,W,H-G);x.fillStyle=s.fl;[0,1,2].forEach(r=>{rc(0,G+6+r*12,W,1);for(let k=-1;k<12;k++)rc(k*32+(r%2)*16-(sc%32),G+6+r*12,1,12)});
+ for(let i=0;i<34;i++)rc(((i*37-sc)%W+W)%W,G+9+(i*13)%34,2,1);
+ x.fillStyle='#0003';rc(0,G+4,W,3);x.fillStyle=s.ft;rc(0,G,W,4);for(let k=-1;k<42;k++)rc(k*8-(sc%8),G+4,5,2);x.fillStyle='#fffa';rc(0,G,W,1);
+ for(const o of O){
+  if(o.t=='h'){x.fillStyle='#000';rc(o.x,G,o.w,H-G);x.fillStyle=s.sd;rc(o.x,G,o.w,3);x.fillStyle=s.sp;for(let i=0;i<o.w;i+=6)rc(o.x+i,H-6,3,6)}
+  else if(o.t=='f'){const f=Math.sin(t*20)>0?0:2;x.fillStyle='#fffc';rc(o.x-3,o.y+f,4,3);rc(o.x+9,o.y+f,4,3);x.fillStyle='#fff6';rc(o.x-3,o.y+f+3,3,1);rc(o.x+10,o.y+f+3,3,1);spr(BC,BP,Math.round(o.x),Math.round(o.y))}
+  else if(o.t=='b'){const h=o.h;x.fillStyle=s.bd;for(let i=3;i>0;i--)rc(o.x+i,o.y-i,12,h);x.fillStyle=s.bk;rc(o.x,o.y,12,h);x.fillStyle='#fff';for(let j=3;j<h-2;j+=4)rc(o.x+2,o.y+j,8,2);rc(o.x,o.y,12,1);rc(o.x,o.y,1,h);x.fillStyle='#0003';for(let j=3;j<h-2;j+=4)rc(o.x+2,o.y+j+2,8,1);x.fillStyle=s.bd;rc(o.x,o.y+h-1,12,1);rc(o.x+11,o.y,1,h)}
+  else if(o.t=='s'){const tri=(ox,oy,m)=>{for(let r=0;r<10;r++){const w=2+(r>>1)*2-m*2;if(w>0)rc(ox+5-w/2,oy+r,w,1)}};
+   x.fillStyle=s.sd;for(let i=3;i>0;i--)tri(o.x+i,o.y-i,0);tri(o.x,o.y,0);x.fillStyle=s.sp;tri(o.x,o.y+1,1);
+   x.fillStyle='#fff3';for(let r=2;r<9;r++)rc(o.x+5-(2+(r>>1)*2-2)/2,o.y+r+1,1,1);
+   x.fillStyle='#ff5d73';rc(o.x+3,o.y+6,1,2);rc(o.x+6,o.y+6,1,2);x.fillStyle='#fff8';rc(o.x+4,o.y+2,1,2)}
+  else{const gx=Math.round(o.x),gy=Math.round(o.y+Math.sin(t*5+o.x/20)*2);spr(GM,GP,gx-1,gy-1);
+   if(Math.sin(t*6+o.x)>.75){x.fillStyle='#fff';rc(gx+7,gy-2,1,4);rc(gx+6,gy-1,3,1)}}}
+ for(const p of PA){x.globalAlpha=Math.min(1,p.l*3);x.fillStyle=p.c;rc(p.x,p.y,2,2)}x.globalAlpha=1;
+ x.fillStyle='#0005';rc(P.x+(P.on?0:2),G+1,12-(P.on?0:2),2);
+ if(!(P.inv>0&&Math.floor(P.inv*12)%2)){x.save();x.translate(Math.round(P.x+6),Math.round(P.y+6));x.rotate(Math.round(P.rot/(Math.PI/2))*Math.PI/2);
+  spr(PL,PP,-5,-5,'#0006');spr(PL,PP,-6,-6);x.restore()}
+ if(ph==2){const g=x.createRadialGradient(P.x+6,P.y,28,P.x+6,P.y,115);g.addColorStop(0,'rgba(0,0,8,0)');g.addColorStop(1,'rgba(0,0,8,.88)');x.fillStyle=g;rc(0,0,W,H)}
+ else{const g=x.createRadialGradient(W/2,H/2,70,W/2,H/2,190);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(10,0,30,.35)');x.fillStyle=g;rc(0,0,W,H)}
+ if(P.inv>1){x.fillStyle='#f003';rc(0,0,W,H)}
+ x.restore();
+ x.fillStyle='#000b';rc(0,0,W,13);x.fillStyle='#fff3';rc(0,13,W,1);for(let i=0;i<3;i++)spr(HR,i<lives?HP1:HP0,4+i*9,3);
+ spr(GM,GP,47,1);x.fillStyle='#fff';x.font="6px 'Press Start 2P',monospace";x.fillText(gems+'/'+NEED,60,9);
+ x.fillStyle='#ffd23f';const nr=W<300,qx=nr?94:112,px0=nr?102:120,bx=nr?136:190,bw=W-bx-4;x.fillText('?',qx,9);for(let i=0;i<3;i++){x.fillStyle='#000';rc(px0+i*9,3,8,7);x.fillStyle=i<qc?'#4fd0ff':'#ffffff22';rc(px0+1+i*9,4,6,5)}
+ x.fillStyle='#000';rc(bx,3,bw,7);x.fillStyle='#4fd0ff';rc(bx+1,4,(bw-2)*gems/NEED,5);x.fillStyle='#fff6';rc(bx+1,4,(bw-2)*gems/NEED,1);x.fillStyle='#0008';for(let i=1;i<NEED/3;i++)rc(bx+1+(bw-2)*i/(NEED/3),4,1,5)}
+let last=performance.now();
+function loop(n){const dt=Math.min((n-last)/1000,.033);last=n;t+=dt;if(st=='play')update(dt);draw();requestAnimationFrame(loop)}
+hud();home();requestAnimationFrame(loop);
+</script></body></html>
